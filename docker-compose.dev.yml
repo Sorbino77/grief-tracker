@@ -1,0 +1,11 @@
+services:
+  web:
+    build:
+      context: .
+      target: builder        # includes dev deps
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DEBUG=True
+    volumes:
+      - .:/app               # live-reload: mount whole project
