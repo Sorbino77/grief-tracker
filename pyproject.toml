@@ -1,0 +1,62 @@
+[project]
+name = "grief-tracker"
+version = "1.0.0"
+description = "Logistics issue (grief) tracking system — Django REST API"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=5.1",
+    "djangorestframework>=3.15",
+    "djangorestframework-simplejwt>=5.3",
+    "django-filter>=24.3",
+    "django-cors-headers>=4.4",
+    "dj-database-url>=2.2",
+    "psycopg[binary]>=3.2",
+    "gunicorn>=23.0",
+    "openpyxl>=3.1",
+    "pandas>=2.2",
+    "Pillow>=11.0",
+    "python-decouple>=3.8",
+    "drf-spectacular>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "django-stubs>=5.0",
+    "djangorestframework-stubs>=3.15",
+    "pytest>=8.2",
+    "pytest-django>=4.8",
+    "coverage>=7.5",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "django-stubs>=5.0",
+    "djangorestframework-stubs>=3.15",
+    "pytest>=8.2",
+    "pytest-django>=4.8",
+    "coverage>=7.5",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.14"
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.development"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["test_*.py", "*_test.py"]
