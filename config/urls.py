@@ -2,9 +2,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from config.views import HomeView, DashboardView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
+    # Home page with login/register
+    path("", HomeView.as_view(), name="home"),
+    path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path("admin/", admin.site.urls),
     # API v1
     path("api/v1/auth/", include("apps.accounts.urls")),
