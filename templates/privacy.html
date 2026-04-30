@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grief Tracker - Privacy Notice</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 760px;
+            margin: 40px auto;
+            padding: 0 20px 60px;
+            line-height: 1.6;
+            color: #222;
+            background: #f7f8fa;
+        }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+        }
+        h1 { color: #667eea; margin-bottom: 6px; }
+        h2 { color: #444; margin-top: 28px; margin-bottom: 8px; font-size: 18px; }
+        .meta { color: #888; font-size: 13px; margin-bottom: 18px; }
+        ul { margin-left: 22px; }
+        li { margin-bottom: 6px; }
+        code { background: #eef0f4; padding: 1px 6px; border-radius: 3px; font-size: 13px; }
+        a { color: #667eea; }
+        .nav { margin-bottom: 14px; }
+        .nav a { font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="nav"><a href="/">&larr; Back to login</a></div>
+        <h1>Privacy notice</h1>
+        <div class="meta">Grief Tracker &mdash; logistics issue tracking system</div>
+
+        <p>
+            This notice explains what personal data we hold about you when you use Grief Tracker,
+            why we hold it, how long we keep it, and how you can exercise your rights under the
+            EU General Data Protection Regulation (GDPR).
+        </p>
+
+        <h2>1. What we collect</h2>
+        <ul>
+            <li><strong>Account data</strong>: email, username, optional first/last name, optional department, role.</li>
+            <li><strong>Authentication data</strong>: hashed password, last login timestamp, JWT refresh-token records (for revocation).</li>
+            <li><strong>Operational data</strong>: grief issues you create or edit are linked to your account so the audit trail shows who did what.</li>
+            <li><strong>Technical logs</strong>: server logs may include IP addresses and user-agent strings for security purposes (rate-limiting, abuse detection).</li>
+        </ul>
+
+        <h2>2. Why we hold it (lawful basis)</h2>
+        <ul>
+            <li><strong>Contract</strong> &mdash; we need account data to provide you the service.</li>
+            <li><strong>Legitimate interest</strong> &mdash; audit logs and rate-limit logs help us keep the system secure.</li>
+            <li><strong>Consent</strong> &mdash; we ask you to accept this notice at registration. You can withdraw consent at any time by deleting your account.</li>
+        </ul>
+
+        <h2>3. How long we keep it</h2>
+        <p>
+            Account and operational data are kept for as long as your account is active. If you
+            erase your account (Art. 17, see below), your personal fields (email, name, department)
+            are anonymised immediately; the underlying issue records remain because they form part
+            of business records, but they are no longer linked to identifiable PII.
+        </p>
+        <p>
+            Server logs are kept for 30 days then rotated.
+        </p>
+
+        <h2>4. Your rights</h2>
+        <ul>
+            <li><strong>Access (Art. 15)</strong> &mdash; <code>GET /api/v1/auth/me/</code></li>
+            <li><strong>Rectification (Art. 16)</strong> &mdash; <code>PATCH /api/v1/auth/me/</code></li>
+            <li><strong>Erasure (Art. 17)</strong> &mdash; <code>DELETE /api/v1/auth/me/delete/</code> &mdash; anonymises your account immediately.</li>
+            <li><strong>Data portability (Art. 20)</strong> &mdash; <code>GET /api/v1/auth/me/export/</code> returns a JSON dump of every field we hold about you.</li>
+            <li><strong>Withdraw consent</strong> &mdash; deleting your account also withdraws the consent recorded at registration.</li>
+            <li><strong>Lodge a complaint</strong> &mdash; you have the right to complain to your national data-protection authority.</li>
+        </ul>
+
+        <h2>5. Sharing</h2>
+        <p>
+            We do not share your personal data with third parties beyond the infrastructure
+            providers needed to host the service (database, hosting, TLS termination). We do not
+            sell or rent your data.
+        </p>
+
+        <h2>6. Security</h2>
+        <ul>
+            <li>Passwords are stored using PBKDF2 with a per-user salt (Django default).</li>
+            <li>Authentication uses short-lived JWTs (1h) with rotating refresh tokens and a server-side blacklist.</li>
+            <li>Login and registration are rate-limited.</li>
+            <li>Production deployments use HTTPS-only cookies, HSTS, and strict CORS/CSRF.</li>
+        </ul>
+
+        <h2>7. Contact</h2>
+        <p>
+            For any privacy question, contact the project owner at
+            <code>privacy@example.com</code> &mdash; replace this with your real DPO contact before going public.
+        </p>
+    </div>
+</body>
+</html>
