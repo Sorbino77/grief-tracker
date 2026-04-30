@@ -1,11 +1,13 @@
-from django.db.models import Avg, Count, F, FloatField, Q
-from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
+from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import TruncMonth
 from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.grief.models import GriefIssue, IssueStatus
+
+# noqa: RUF012 — DRF view class attributes are safe and intentional
 
 
 def _base_qs(request: Request):

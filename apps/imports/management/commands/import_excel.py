@@ -20,7 +20,7 @@ class Command(BaseCommand):
             help="Parse the file and report what would be imported, without writing to the DB",
         )
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *_args, **options) -> None:
         path = Path(options["file"])
         if not path.exists():
             raise CommandError(f"File not found: {path}")
@@ -28,13 +28,11 @@ class Command(BaseCommand):
         if options["dry_run"]:
             self.stdout.write(self.style.WARNING("Dry-run mode — no data will be written"))
             # Still parse to surface errors
+            import pandas as pd
+
             from apps.imports.services import (
-                import_formulas_sheet,
-                import_grief_sheet,
-                import_loc_codes_sheet,
                 ImportResult,
             )
-            import pandas as pd
             result = ImportResult()
             sheets = pd.read_excel(path, sheet_name=None, header=None, dtype=str)
             self.stdout.write(f"Sheets found: {list(sheets.keys())}")

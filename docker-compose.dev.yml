@@ -3,9 +3,17 @@ services:
     build:
       context: .
       target: builder        # includes dev deps
-    command: python manage.py runserver 0.0.0.0:8000
+    # Run the dev entrypoint which: migrates -> bootstraps admin ->
+    # imports Excel on first run -> starts runserver.
+    command: ["sh", "/app/docker/entrypoint-dev.sh"]
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.development
       - DEBUG=True
+      # Default dev admin credentials. Override in .env for anything real.
+      - DJANGO_ADMIN_USERNAME=${DJANGO_ADMIN_USERNAME:-admin}
+      - DJANGO_ADMIN_EMAIL=${DJANGO_ADMIN_EMAIL:-admin@local}
+      - DJANGO_ADMIN_PASSWORD=${DJANGO_ADMIN_PASSWORD:-admin}
     volumes:
       - .:/app               # live-reload: mount whole project
+    ports:
+      - "8000:8000"

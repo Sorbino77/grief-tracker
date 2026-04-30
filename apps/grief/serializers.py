@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import GriefIssue, IssueType, Carrier, Location
+
+from .models import Carrier, GriefIssue, IssueType, Location
 
 
 class IssueTypeSerializer(serializers.ModelSerializer):
@@ -25,9 +26,9 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class GriefIssueListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
-    carrier = serializers.StringRelatedField()
-    issue_type = serializers.StringRelatedField()
-    location = serializers.StringRelatedField()
+    carrier: serializers.Field = serializers.StringRelatedField()
+    issue_type: serializers.Field = serializers.StringRelatedField()
+    location: serializers.Field = serializers.StringRelatedField()
     resolution_days = serializers.ReadOnlyField()
 
     class Meta:
@@ -49,10 +50,10 @@ class GriefIssueDetailSerializer(serializers.ModelSerializer):
 
     # Accept FK by name/id on write
     carrier = serializers.PrimaryKeyRelatedField(
-        queryset=Carrier.objects.all(), allow_null=True, required=False
+        queryset=Carrier.objects.all(), allow_null=True, required=False,
     )
     issue_type = serializers.PrimaryKeyRelatedField(
-        queryset=IssueType.objects.all(), allow_null=True, required=False
+        queryset=IssueType.objects.all(), allow_null=True, required=False,
     )
     location = serializers.SlugRelatedField(
         queryset=Location.objects.all(), slug_field="location_code",

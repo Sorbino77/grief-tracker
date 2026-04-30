@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from .models import Carrier, GriefIssue, IssueType, Location
 
+# noqa: RUF012 — Django admin class attributes are safe and intentional
+
 
 @admin.register(GriefIssue)
 class GriefIssueAdmin(admin.ModelAdmin):
@@ -24,9 +26,9 @@ class GriefIssueAdmin(admin.ModelAdmin):
         ("Audit", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
     )
 
-    def resolution_days(self, obj):
+    def resolution_days(self, obj: GriefIssue) -> int | None:
         return obj.resolution_days
-    resolution_days.short_description = "Days to resolve"
+    resolution_days.short_description = "Days to resolve"  # type: ignore[attr-defined]
 
 
 @admin.register(IssueType)

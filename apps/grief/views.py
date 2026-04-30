@@ -1,7 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .filters import GriefIssueFilter
 from .models import Carrier, GriefIssue, IssueType, Location
@@ -13,7 +12,6 @@ from .serializers import (
     IssueTypeSerializer,
     LocationSerializer,
 )
-
 
 # ── GriefIssue ────────────────────────────────────────────────────────────────
 
@@ -53,7 +51,7 @@ class GriefIssueDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsManagerOrReadOnly]
 
     def destroy(self, request: Request, *args, **kwargs) -> Response:
-        if not request.user.is_admin:
+        if not request.user or not request.user.is_authenticated or not request.user.is_admin:  # type: ignore[union-attr]
             return Response(
                 {"detail": "Only admins can delete issues."},
                 status=status.HTTP_403_FORBIDDEN,

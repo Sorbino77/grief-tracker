@@ -1,4 +1,6 @@
+from datetime import timedelta
 from pathlib import Path
+
 import dj_database_url
 from decouple import config
 
@@ -61,7 +63,7 @@ DATABASES = {
     "default": dj_database_url.config(
         default=config("DATABASE_URL", default="sqlite:///db.sqlite3"),
         conn_max_age=600,
-    )
+    ),
 }
 
 AUTH_USER_MODEL = "accounts.User"
@@ -104,7 +106,6 @@ REST_FRAMEWORK = {
 }
 
 # ── JWT ───────────────────────────────────────────────────────────────────────
-from datetime import timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),

@@ -11,7 +11,7 @@ def main() -> None:
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you inside the virtualenv? "
-            "Run: uv sync && source .venv/bin/activate"
+            "Run: uv sync && source .venv/bin/activate",
         ) from exc
     execute_from_command_line(sys.argv)
 

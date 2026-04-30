@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grief Tracker - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 { font-size: 24px; }
+
+        .navbar button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .navbar button:hover { background: rgba(255,255,255,0.3); }
+
+        .container {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            /* form takes ~60%, recent cases ~40% — 20 fields need the room */
+            grid-template-columns: 3fr 2fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* 2-column sub-grid for the spreadsheet-style 20-field form */
+        .grief-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 16px;
+        }
+        .grief-grid .form-group { margin-bottom: 0; }
+        .grief-grid .full-width { grid-column: 1 / -1; }
+        .grief-grid input, .grief-grid select, .grief-grid textarea {
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+        .grief-grid label { margin-bottom: 4px; font-size: 12px; }
+        .hint { font-weight: 400; color: #999; font-size: 11px; margin-left: 6px; }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .button:active { transform: translateY(0); }
+
+        .issues-list { max-height: 700px; overflow-y: auto; }
+
+        .issue-item {
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .issue-item h4 { margin-bottom: 8px; color: #333; }
+        .issue-meta { font-size: 12px; color: #888; margin-bottom: 10px; }
+
+        .issue-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .issue-status.ongoing { background: #fff3cd; color: #856404; }
+        .issue-status.solved  { background: #d4edda; color: #155724; }
+
+        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 14px; }
+        .alert.success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .alert.error   { background: #f8d7da; color: #721c24; border-left: 4px solid #f5c6cb; }
+        .alert.info    { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+
+        .empty { text-align: center; color: #888; padding: 40px 20px; }
+
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+            .grief-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📊 Grief Tracker Dashboard</h1>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <div id="alertContainer"></div>
+
+        <div class="grid">
+            <!-- NEW CASE FORM — all 20 columns from the Grief sheet -->
+            <div class="card">
+                <h2>➕ Register New Case</h2>
+
+                <div style="margin-bottom: 20px;">
+                    <button type="button" class="button" onclick="showAddCarrierModal()" style="width: 100%; background: #28a745;">
+                        ➕ Add New Carrier
+                    </button>
+                </div>
+
+                <form id="newCaseForm">
+                    <div class="grief-grid">
+                        <div class="form-group">
+                            <label for="knRef">K&amp;N REF *</label>
+                            <input type="text" id="knRef" name="kn_ref" placeholder="e.g., 5014641074" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="shipId">Ship ID</label>
+                            <input type="text" id="shipId" name="ship_id" placeholder="e.g., 20241213-S-70149">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="toRef">TO Ref</label>
+                            <input type="text" id="toRef" name="to_ref" placeholder="e.g., 20241213617107">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="supplierName">Supplier Name</label>
+                            <input type="text" id="supplierName" name="supplier_name" placeholder="e.g., Carraro Drive Tech Spa">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="country">Ctry</label>
+                            <input type="text" id="country" name="country" maxlength="5" placeholder="e.g., GB">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">Loc</label>
+                            <select id="location" name="location">
+                                <option value="">-- Select Location --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="carrier">Carrier *</label>
+                            <select id="carrier" name="carrier" required>
+                                <option value="">-- Select Carrier --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issueType">Issue type</label>
+                            <select id="issueType" name="issue_type">
+                                <option value="">-- Select Issue Type --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateField">Date *</label>
+                            <input type="date" id="dateField" name="date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hasImage">Image</label>
+                            <select id="hasImage" name="has_image">
+                                <option value="">-- Select --</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="causingParty">Causing party</label>
+                            <select id="causingParty" name="causing_party">
+                                <option value="">-- Select --</option>
+                                <option value="SUPPLIER">Supplier</option>
+                                <option value="CARRIER">Carrier</option>
+                                <option value="MIXED">Mixed</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="resolveDate">Resolve Date</label>
+                            <input type="date" id="resolveDate" name="resolve_date">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status">Status *</label>
+                            <select id="status" name="status" required>
+                                <option value="ONGOING">🔄 Ongoing</option>
+                                <option value="SOLVED">✓ Solved</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="note">Note</label>
+                            <textarea id="note" name="note" placeholder="Add any additional details..."></textarea>
+                        </div>
+
+                        <!-- ── Computed columns: editable inputs that auto-fill from the others ── -->
+                        <div class="form-group">
+                            <label for="uniqueKey">Unique <span class="hint">auto = K&amp;N REF + Issue type</span></label>
+                            <input type="text" id="uniqueKey" name="unique" placeholder="auto-filled">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">Year <span class="hint">auto from Date</span></label>
+                            <input type="number" id="year" name="year" placeholder="auto-filled">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="month">Month <span class="hint">auto from Date</span></label>
+                            <input type="text" id="month" name="month" placeholder="auto-filled">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="duplicate">Duplicate <span class="hint">TRUE / FALSE</span></label>
+                            <select id="duplicate" name="duplicate">
+                                <option value="FALSE">FALSE</option>
+                                <option value="TRUE">TRUE</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="solved">Solved <span class="hint">1 if status = SOLVED</span></label>
+                            <input type="number" id="solved" name="solved" min="0" max="1" placeholder="auto-filled">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ongoing">Ongoing <span class="hint">1 if status = ONGOING</span></label>
+                            <input type="number" id="ongoing" name="ongoing" min="0" max="1" placeholder="auto-filled">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="button" style="margin-top: 20px;">📝 Log Case</button>
+                </form>
+            </div>
+
+            <!-- RECENT CASES -->
+            <div class="card">
+                <h2>📋 Recent Cases</h2>
+                <div id="issuesList" class="issues-list">
+                    <div class="empty">Loading cases...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD CARRIER MODAL -->
+    <div id="addCarrierModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 40px; border-radius: 10px; max-width: 400px; width: 90%;">
+            <h3 style="margin-bottom: 20px; color: #667eea;">➕ Add New Carrier</h3>
+            <form id="addCarrierForm">
+                <div class="form-group">
+                    <label for="carrierName">Carrier Name *</label>
+                    <input type="text" id="carrierName" name="name" placeholder="e.g., Transmec, DHL, FedEx" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button type="submit" class="button">Add Carrier</button>
+                    <button type="button" class="button" onclick="hideAddCarrierModal()" style="background: #6c757d;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let accessToken = localStorage.getItem('access_token');
+        let carriers = [];
+        let issueTypes = [];
+        let locations = [];
+
+        if (!accessToken) {
+            window.location.href = '/';
+        }
+
+        window.addEventListener('load', () => {
+            loadCarriers();
+            loadIssueTypes();
+            loadLocations();
+            loadIssues();
+            wireComputedColumns();
+        });
+
+        // Auto-fill the 6 computed columns as the user types.
+        // Mirrors the Excel formulas: Unique = K&N REF + Issue type code,
+        // Year/Month derive from Date, Solved/Ongoing flip on Status.
+        // Inputs stay editable so users can override (per the spreadsheet feel).
+        function wireComputedColumns() {
+            const knRef     = document.getElementById('knRef');
+            const issueType = document.getElementById('issueType');
+            const dateField = document.getElementById('dateField');
+            const status    = document.getElementById('status');
+
+            const recompute = () => {
+                const code = issueType.options[issueType.selectedIndex]?.dataset.code || '';
+                document.getElementById('uniqueKey').value = (knRef.value || '') + code;
+
+                if (dateField.value) {
+                    const d = new Date(dateField.value);
+                    if (!isNaN(d)) {
+                        document.getElementById('year').value  = d.getFullYear();
+                        document.getElementById('month').value = d.toLocaleString('en-US', { month: 'long' });
+                    }
+                }
+
+                document.getElementById('solved').value  = status.value === 'SOLVED'  ? 1 : 0;
+                document.getElementById('ongoing').value = status.value === 'ONGOING' ? 1 : 0;
+            };
+
+            [knRef, issueType, dateField, status].forEach(el => {
+                el.addEventListener('input', recompute);
+                el.addEventListener('change', recompute);
+            });
+            recompute();
+        }
+
+        async function loadCarriers() {
+            try {
+                const r = await fetch(`${API_BASE}/grief/carriers/?page_size=500`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (r.ok) {
+                    const data = await r.json();
+                    carriers = data.results || [];
+                    updateCarrierDropdown();
+                } else {
+                    showAlert('Error loading carriers', 'error');
+                }
+            } catch (err) {
+                showAlert('Network error loading carriers: ' + err.message, 'error');
+            }
+        }
+
+        async function loadIssueTypes() {
+            try {
+                const r = await fetch(`${API_BASE}/grief/issue-types/?page_size=500`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (r.ok) {
+                    const data = await r.json();
+                    issueTypes = data.results || [];
+                    updateIssueTypeDropdown();
+                } else {
+                    showAlert('Error loading issue types', 'error');
+                }
+            } catch (err) {
+                showAlert('Network error loading issue types: ' + err.message, 'error');
+            }
+        }
+
+        async function loadLocations() {
+            try {
+                const r = await fetch(`${API_BASE}/grief/locations/?page_size=500`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (r.ok) {
+                    const data = await r.json();
+                    locations = data.results || [];
+                    updateLocationDropdown();
+                } else {
+                    showAlert('Error loading locations', 'error');
+                }
+            } catch (err) {
+                showAlert('Network error loading locations: ' + err.message, 'error');
+            }
+        }
+
+        function updateCarrierDropdown() {
+            const select = document.getElementById('carrier');
+            select.innerHTML = '<option value="">-- Select Carrier --</option>';
+            carriers.forEach(carrier => {
+                const opt = document.createElement('option');
+                opt.value = carrier.id;
+                opt.textContent = carrier.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateIssueTypeDropdown() {
+            const select = document.getElementById('issueType');
+            select.innerHTML = '<option value="">-- Select Issue Type --</option>';
+            issueTypes.forEach(type => {
+                const opt = document.createElement('option');
+                opt.value = type.id;
+                // IssueType has `code` + `description`, not `name`. Stash the code
+                // on the option so the Unique-key computation can read it back.
+                opt.dataset.code = type.code || '';
+                opt.textContent = type.description ? `${type.code} — ${type.description}` : type.code;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateLocationDropdown() {
+            const select = document.getElementById('location');
+            select.innerHTML = '<option value="">-- Select Location --</option>';
+            locations.forEach(loc => {
+                const opt = document.createElement('option');
+                // location FK is a SlugRelatedField on slug=location_code
+                opt.value = loc.location_code;
+                opt.textContent = loc.city
+                    ? `${loc.location_code} — ${loc.city}`
+                    : loc.location_code;
+                select.appendChild(opt);
+            });
+        }
+
+        async function loadIssues() {
+            try {
+                const r = await fetch(`${API_BASE}/grief/issues/?page_size=10`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (r.status === 401) { logout(); return; }
+                if (r.ok) {
+                    const data = await r.json();
+                    displayIssues(data.results || []);
+                } else {
+                    showAlert('Error loading cases', 'error');
+                }
+            } catch (err) {
+                showAlert('Network error: ' + err.message, 'error');
+            }
+        }
+
+        function displayIssues(issues) {
+            const container = document.getElementById('issuesList');
+            if (issues.length === 0) {
+                container.innerHTML = '<div class="empty">No cases yet. Create one to get started! 👆</div>';
+                return;
+            }
+            // List serializer returns `issue_type` and `carrier` as StringRelatedField
+            // (i.e. their __str__ values), not `issue_code` / `carrier_name`.
+            container.innerHTML = issues.map(issue => `
+                <div class="issue-item">
+                    <h4>${issue.kn_ref || 'N/A'}${issue.issue_type ? ' — ' + issue.issue_type : ''}</h4>
+                    <div class="issue-meta">
+                        📅 ${issue.date ? new Date(issue.date).toLocaleDateString() : ''} | 🏢 ${issue.carrier || 'N/A'}
+                    </div>
+                    <span class="issue-status ${(issue.status || '').toLowerCase()}">
+                        ${issue.status || ''}
+                    </span>
+                    ${issue.note ? `<p style="margin-top: 10px; font-size: 13px; color: #666;">${issue.note}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('newCaseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+
+            // Build the payload from the 14 real-data columns. The 6 computed
+            // columns (unique, year, month, duplicate, solved, ongoing) are
+            // derived server-side or from other fields, so we don't send them.
+            const payload = {
+                kn_ref: fd.get('kn_ref'),
+                ship_id: fd.get('ship_id') || '',
+                to_ref: fd.get('to_ref') || '',
+                supplier_name: fd.get('supplier_name') || '',
+                country: fd.get('country') || '',
+                date: fd.get('date'),
+                has_image: fd.get('has_image') === 'Yes',
+                causing_party: fd.get('causing_party') || '',
+                resolve_date: fd.get('resolve_date') || null,
+                status: fd.get('status'),
+                note: fd.get('note') || '',
+            };
+            const carrier   = fd.get('carrier');
+            const issueType = fd.get('issue_type');
+            const location  = fd.get('location');
+            if (carrier)   payload.carrier    = parseInt(carrier);
+            if (issueType) payload.issue_type = parseInt(issueType);
+            if (location)  payload.location   = location;
+
+            try {
+                const r = await fetch(`${API_BASE}/grief/issues/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (r.ok) {
+                    const newCase = await r.json();
+                    showAlert('✓ Case logged successfully! ID: ' + newCase.id, 'success');
+                    e.target.reset();
+                    wireComputedColumns();
+                    loadIssues();
+                } else {
+                    const error = await r.json();
+                    showAlert('Error logging case: ' + JSON.stringify(error), 'error');
+                }
+            } catch (err) {
+                showAlert('Network error: ' + err.message, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/';
+        }
+
+        function showAddCarrierModal() {
+            document.getElementById('addCarrierModal').style.display = 'flex';
+        }
+
+        function hideAddCarrierModal() {
+            document.getElementById('addCarrierModal').style.display = 'none';
+            document.getElementById('addCarrierForm').reset();
+        }
+
+        document.getElementById('addCarrierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const carrierName = document.getElementById('carrierName').value;
+            try {
+                const r = await fetch(`${API_BASE}/grief/carriers/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ name: carrierName })
+                });
+                if (r.ok) {
+                    showAlert('✓ Carrier added successfully!', 'success');
+                    hideAddCarrierModal();
+                    loadCarriers();
+                } else {
+                    const error = await r.json();
+                    showAlert('Error adding carrier: ' + JSON.stringify(error), 'error');
+                }
+            } catch (err) {
+                showAlert('Network error: ' + err.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

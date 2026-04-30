@@ -1,4 +1,5 @@
 import django_filters
+
 from .models import GriefIssue
 
 
@@ -12,9 +13,15 @@ class GriefIssueFilter(django_filters.FilterSet):
     note = django_filters.CharFilter(lookup_expr="icontains")
 
     # FK filters by name
-    carrier_name = django_filters.CharFilter(field_name="carrier__name", lookup_expr="iexact")
-    issue_code = django_filters.CharFilter(field_name="issue_type__code", lookup_expr="iexact")
-    location_code = django_filters.CharFilter(field_name="location__location_code", lookup_expr="iexact")
+    carrier_name = django_filters.CharFilter(
+        field_name="carrier__name", lookup_expr="iexact",
+    )
+    issue_code = django_filters.CharFilter(
+        field_name="issue_type__code", lookup_expr="iexact",
+    )
+    location_code = django_filters.CharFilter(
+        field_name="location__location_code", lookup_expr="iexact",
+    )
 
     # Enum / choice filters
     status = django_filters.CharFilter(lookup_expr="iexact")

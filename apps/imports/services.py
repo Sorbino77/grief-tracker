@@ -5,8 +5,8 @@ so it can be called from tests or the API upload endpoint.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pandas as pd
 
@@ -63,8 +63,10 @@ def _safe_bool(val) -> bool:
 
 def import_formulas_sheet(df: pd.DataFrame, result: ImportResult) -> None:
     """
-    Formulas sheet (row 2 = headers at index 2):
-    cols: Issue Type | description | Image | Causing Party | Status | month nr | month name | Carriers | RoadLOG Codes | Loc
+    Formulas sheet (row 2 = headers at index 2).
+
+    cols: Issue Type | description | Image | Causing Party | Status
+          | month nr | month name | Carriers | RoadLOG Codes | Loc
     """
     # Header is at row index 2 (0-based)
     df.columns = df.iloc[2]
@@ -129,9 +131,100 @@ def import_loc_codes_sheet(df: pd.DataFrame, result: ImportResult) -> None:
             result.locations_created += 1
 
 
+def _get_cached_carrier(
+    name: str, cache: dict[str, Carrier | None],
+) -> Carrier | None:
+    """Get or create a carrier with caching."""
+    if name not in cache:
+        try:
+            cache[name] = Carrier.objects.get(name__iexact=name) if name else None
+        except Carrier.DoesNotExist:
+            obj, _ = Carrier.objects.get_or_create(name=name)
+            cache[name] = obj
+    return cache[name]
+
+
+def _get_cached_issue_type(
+    code: str, cache: dict[str, IssueType | None],
+) -> IssueType | None:
+    """Get or create an issue type with caching."""
+    if code not in cache:
+        try:
+            cache[code] = IssueType.objects.get(code__iexact=code) if code else None
+        except IssueType.DoesNotExist:
+            obj, _ = IssueType.objects.get_or_create(code=code)
+            cache[code] = obj
+    return cache[code]
+
+
+def _get_cached_location(
+    code: str, cache: dict[str, Location | None],
+) -> Location | None:
+    """Get or return None for a location with caching."""
+    if code not in cache:
+        try:
+            cache[code] = Location.objects.get(location_code=code) if code else None
+        except Location.DoesNotExist:
+            cache[code] = None
+    return cache[code]
+
+
+def _process_grief_row(
+    idx: int,
+    row,
+    result: ImportResult,
+    carrier_cache: dict[str, Carrier | None],
+    issue_type_cache: dict[str, IssueType | None],
+    location_cache: dict[str, Location | None],
+) -> None:
+    """Process a single row from the grief sheet."""
+    kn_ref = _safe_str(row.get("K&N REF", ""))
+    if not kn_ref:
+        return
+
+    issue_code = _safe_str(row.get("Issue type", ""))
+    unique_key = _safe_str(row.get("Unique", "")) or f"{kn_ref}{issue_code}"
+
+    # Skip duplicates
+    if GriefIssue.objects.filter(unique_key=unique_key).exists():
+        result.issues_skipped += 1
+        return
+
+    try:
+        issue_date = _safe_date(row.get("Date"))
+        if not issue_date:
+            result.errors.append(f"Row {idx}: missing date for {kn_ref}")
+            return
+
+        GriefIssue.objects.create(
+            kn_ref=kn_ref,
+            ship_id=_safe_str(row.get("Ship ID", "")),
+            to_ref=_safe_str(row.get("TO Ref", "")),
+            supplier_name=_safe_str(row.get("Supplier Name", "")),
+            country=_safe_str(row.get("Ctry", "")),
+            location=_get_cached_location(_safe_str(row.get("Loc", "")), location_cache),
+            carrier=_get_cached_carrier(_safe_str(row.get("Carrier", "")), carrier_cache),
+            issue_type=_get_cached_issue_type(issue_code, issue_type_cache),
+            date=issue_date,
+            has_image=_safe_bool(row.get("Image")),
+            causing_party=_safe_str(row.get("Causing party", "")).upper(),
+            resolve_date=_safe_date(row.get("Resolve Date")),
+            status=_safe_str(row.get("Status", "ONGOING")).upper(),
+            note=_safe_str(row.get("Note", "")),
+            unique_key=unique_key,
+        )
+        result.issues_created += 1
+
+    except Exception as exc:
+        msg = f"Row {idx} ({kn_ref}): {exc}"
+        logger.warning(msg)
+        result.errors.append(msg)
+
+
 def import_grief_sheet(df: pd.DataFrame, result: ImportResult) -> None:
     """
     Grief sheet — header at row index 9.
+
     Cols: K&N REF | Ship ID | TO Ref | Supplier Name | Ctry | Loc | Carrier |
           Issue type | Date | Image | Causing party | Resolve Date | Status | Note |
           Unique | Year | Month | Duplicate | Solved | Ongoing
@@ -144,74 +237,15 @@ def import_grief_sheet(df: pd.DataFrame, result: ImportResult) -> None:
     issue_type_cache: dict[str, IssueType | None] = {}
     location_cache: dict[str, Location | None] = {}
 
-    def get_carrier(name: str) -> Carrier | None:
-        if name not in carrier_cache:
-            try:
-                carrier_cache[name] = Carrier.objects.get(name__iexact=name) if name else None
-            except Carrier.DoesNotExist:
-                obj, _ = Carrier.objects.get_or_create(name=name)
-                carrier_cache[name] = obj
-        return carrier_cache[name]
-
-    def get_issue_type(code: str) -> IssueType | None:
-        if code not in issue_type_cache:
-            try:
-                issue_type_cache[code] = IssueType.objects.get(code__iexact=code) if code else None
-            except IssueType.DoesNotExist:
-                obj, _ = IssueType.objects.get_or_create(code=code)
-                issue_type_cache[code] = obj
-        return issue_type_cache[code]
-
-    def get_location(code: str) -> Location | None:
-        if code not in location_cache:
-            try:
-                location_cache[code] = Location.objects.get(location_code=code) if code else None
-            except Location.DoesNotExist:
-                location_cache[code] = None
-        return location_cache[code]
-
     for idx, row in data.iterrows():
-        kn_ref = _safe_str(row.get("K&N REF", ""))
-        if not kn_ref:
-            continue
-
-        issue_code = _safe_str(row.get("Issue type", ""))
-        unique_key = _safe_str(row.get("Unique", "")) or f"{kn_ref}{issue_code}"
-
-        # Skip duplicates
-        if GriefIssue.objects.filter(unique_key=unique_key).exists():
-            result.issues_skipped += 1
-            continue
-
-        try:
-            issue_date = _safe_date(row.get("Date"))
-            if not issue_date:
-                result.errors.append(f"Row {idx}: missing date for {kn_ref}")
-                continue
-
-            GriefIssue.objects.create(
-                kn_ref=kn_ref,
-                ship_id=_safe_str(row.get("Ship ID", "")),
-                to_ref=_safe_str(row.get("TO Ref", "")),
-                supplier_name=_safe_str(row.get("Supplier Name", "")),
-                country=_safe_str(row.get("Ctry", "")),
-                location=get_location(_safe_str(row.get("Loc", ""))),
-                carrier=get_carrier(_safe_str(row.get("Carrier", ""))),
-                issue_type=get_issue_type(issue_code),
-                date=issue_date,
-                has_image=_safe_bool(row.get("Image")),
-                causing_party=_safe_str(row.get("Causing party", "")).upper(),
-                resolve_date=_safe_date(row.get("Resolve Date")),
-                status=_safe_str(row.get("Status", "ONGOING")).upper(),
-                note=_safe_str(row.get("Note", "")),
-                unique_key=unique_key,
-            )
-            result.issues_created += 1
-
-        except Exception as exc:
-            msg = f"Row {idx} ({kn_ref}): {exc}"
-            logger.warning(msg)
-            result.errors.append(msg)
+        _process_grief_row(
+            idx,
+            row,
+            result,
+            carrier_cache,
+            issue_type_cache,
+            location_cache,
+        )
 
 
 # ── Public entrypoint ─────────────────────────────────────────────────────────
@@ -225,13 +259,17 @@ def import_excel_file(path: str | Path) -> ImportResult:
     logger.info("Starting import from %s", path)
 
     all_sheets: dict[str, pd.DataFrame] = pd.read_excel(
-        path, sheet_name=None, header=None, dtype=str
+        path, sheet_name=None, header=None, dtype=str,
     )
 
     # Order matters: reference data first, then issues
     if "Formulas" in all_sheets:
         import_formulas_sheet(all_sheets["Formulas"].copy(), result)
-        logger.info("Formulas sheet done: %s issue types, %s carriers", result.issue_types_created, result.carriers_created)
+        logger.info(
+            "Formulas sheet done: %s issue types, %s carriers",
+            result.issue_types_created,
+            result.carriers_created,
+        )
 
     if "Loc Codes" in all_sheets:
         import_loc_codes_sheet(all_sheets["Loc Codes"].copy(), result)
@@ -239,7 +277,11 @@ def import_excel_file(path: str | Path) -> ImportResult:
 
     if "Grief" in all_sheets:
         import_grief_sheet(all_sheets["Grief"].copy(), result)
-        logger.info("Grief sheet done: %s created, %s skipped", result.issues_created, result.issues_skipped)
+        logger.info(
+            "Grief sheet done: %s created, %s skipped",
+            result.issues_created,
+            result.issues_skipped,
+        )
 
     logger.info("Import complete — %s", result.summary())
     return result
