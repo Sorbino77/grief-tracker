@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -18,24 +18,19 @@
         }
 
         .container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            width: 100%;
-            overflow: hidden;
+            background: white; border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 1000px; width: 100%; overflow: hidden;
         }
-
         .content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-
         .section { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
-        .section.left  { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .section.left  { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; }
         .section.right { background: #f8f9fa; }
 
         h1 { font-size: 28px; margin-bottom: 10px; }
-        .subtitle { font-size: 14px; opacity: 0.9; margin-bottom: 30px; }
-        .left h1 { color: white; }
-        .left .subtitle { color: rgba(255, 255, 255, 0.8); }
+        .subtitle { font-size: 14px; opacity: .9; margin-bottom: 30px; }
+        .left h1 { color:#fff; }
+        .left .subtitle { color: rgba(255,255,255,.8); }
 
         .feature { margin-bottom: 20px; font-size: 14px; }
         .feature::before { content: "✓ "; font-weight: bold; margin-right: 10px; }
@@ -44,41 +39,35 @@
         .tab {
             padding: 10px 20px; border: none; background: none; font-size: 16px;
             cursor: pointer; color: #6c757d; border-bottom: 3px solid transparent;
-            transition: all 0.3s;
+            transition: all .3s;
         }
         .tab.active { color: #667eea; border-bottom-color: #667eea; }
 
         .form-group       { margin-bottom: 20px; display: none; }
         .form-group.active { display: block; }
 
-        label {
-            display: block; margin-bottom: 8px; font-weight: 500;
-            color: #333; font-size: 14px;
-        }
-
-        input {
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px; }
+        input[type=text], input[type=email], input[type=password] {
             width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px;
-            font-size: 14px; transition: border-color 0.3s;
+            font-size: 14px; transition: border-color .3s;
         }
-        input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.1); }
 
         .button {
             width: 100%; padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; border: none; border-radius: 5px;
+            background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            color: #fff; border: none; border-radius: 5px;
             font-size: 16px; font-weight: 600; cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform .2s, box-shadow .2s;
         }
-        .button:hover  { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .button:hover  { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,.4); }
         .button:active { transform: translateY(0); }
 
-        .links {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 30px;
-        }
+        .links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 30px; }
         .link {
-            text-align: center; padding: 15px; background: white;
+            text-align: center; padding: 15px; background: #fff;
             border: 1px solid #ddd; border-radius: 5px; text-decoration: none;
-            color: #667eea; font-weight: 600; transition: all 0.3s; font-size: 14px;
+            color: #667eea; font-weight: 600; transition: all .3s; font-size: 14px;
         }
         .link:hover { background: #f8f9fa; border-color: #667eea; }
 
@@ -87,6 +76,14 @@
             padding: 15px; border-radius: 4px; margin-bottom: 20px;
             font-size: 14px; color: #0d47a1;
         }
+        .consent {
+            display: flex; gap: 10px; align-items: flex-start;
+            background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px;
+            padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: #5d4037;
+            cursor: pointer;
+        }
+        .consent input[type=checkbox] { margin-top: 3px; }
+        .consent a { color: #667eea; text-decoration: underline; }
 
         @media (max-width: 768px) {
             .content { grid-template-columns: 1fr; }
@@ -117,9 +114,7 @@
 
                 <!-- LOGIN FORM -->
                 <div id="login" class="form-group active">
-                    <div class="info-box">
-                        📧 Use your email and password to login to your account
-                    </div>
+                    <div class="info-box">📧 Use your email and password to login to your account</div>
                     <form id="loginForm">
                         <div style="margin-bottom: 20px;">
                             <label for="loginEmail">Email</label>
@@ -141,7 +136,7 @@
                         New accounts get the <strong>viewer</strong> role &mdash; an admin can promote you later.
                     </div>
                     <form id="registerForm">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
                             <div>
                                 <label for="regFirstName">First name</label>
                                 <input type="text" id="regFirstName" name="first_name" placeholder="John">
@@ -164,13 +159,25 @@
                             <input type="text" id="regDepartment" name="department" placeholder="Logistics, Operations, etc.">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label for="regPassword">Password * <span style="font-weight:400;color:#888;font-size:12px;">(min 8 chars)</span></label>
-                            <input type="password" id="regPassword" name="password" placeholder="••••••••" minlength="8" required>
+                            <label for="regPassword">Password * <span style="font-weight:400;color:#888;font-size:12px;">(min 10 chars)</span></label>
+                            <input type="password" id="regPassword" name="password" placeholder="••••••••••" minlength="10" required>
                         </div>
-                        <div style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 16px;">
                             <label for="regPassword2">Confirm Password *</label>
-                            <input type="password" id="regPassword2" name="password2" placeholder="••••••••" minlength="8" required>
+                            <input type="password" id="regPassword2" name="password2" placeholder="••••••••••" minlength="10" required>
                         </div>
+
+                        <!-- GDPR consent checkbox: required and explicit. -->
+                        <label class="consent" for="regConsent">
+                            <input type="checkbox" id="regConsent" name="gdpr_consent" required>
+                            <span>
+                                I have read and accept the
+                                <a href="/privacy/" target="_blank" rel="noopener">privacy notice</a>.
+                                I understand my personal data will be processed as described and that I
+                                can erase my account at any time.
+                            </span>
+                        </label>
+
                         <div id="registerError" style="display:none; margin-bottom:14px; padding:12px; background:#f8d7da; color:#721c24; border-radius:5px; border-left:4px solid #f5c6cb; font-size:13px;"></div>
                         <button type="submit" class="button">Create account</button>
                     </form>
@@ -183,134 +190,131 @@
             </div>
         </div>
     </div>
+
     <script>
-        // Tab switcher
         function showTab(tabName) {
-            document.querySelectorAll('.form-group').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-            // hide any inline error from the other tab
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('registerError').style.display = 'none';
+            document.querySelectorAll(".form-group").forEach(el => el.classList.remove("active"));
+            document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));
+            document.getElementById(tabName).classList.add("active");
+            event.target.classList.add("active");
+            document.getElementById("loginError").style.display = "none";
+            document.getElementById("registerError").style.display = "none";
         }
 
-        // Pretty-format DRF 400 responses: {field: ["msg1", "msg2"], ...}
         function formatDrfErrors(err) {
-            if (!err || typeof err !== 'object') return String(err || 'Unknown error');
-            // string detail
-            if (typeof err.detail === 'string') return err.detail;
+            if (!err || typeof err !== "object") return String(err || "Unknown error");
+            if (typeof err.detail === "string") return err.detail;
             const lines = [];
             for (const [field, msgs] of Object.entries(err)) {
-                const list = Array.isArray(msgs) ? msgs.join(' ') : String(msgs);
+                const list = Array.isArray(msgs) ? msgs.join(" ") : String(msgs);
                 lines.push(`${field}: ${list}`);
             }
-            return lines.join('  •  ') || JSON.stringify(err);
+            return lines.join("  •  ") || JSON.stringify(err);
         }
 
         function showInlineError(targetId, msg) {
             const el = document.getElementById(targetId);
             el.textContent = msg;
-            el.style.display = 'block';
+            el.style.display = "block";
         }
 
-        // ── LOGIN ──
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            document.getElementById('loginError').style.display = 'none';
-            const email    = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
+            document.getElementById("loginError").style.display = "none";
+            const email    = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
             try {
-                const r = await fetch('/api/v1/auth/token/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const r = await fetch("/api/v1/auth/token/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })
                 });
                 if (r.ok) {
                     const data = await r.json();
-                    localStorage.setItem('access_token', data.access);
-                    localStorage.setItem('refresh_token', data.refresh);
-                    window.location.href = '/dashboard/';
+                    localStorage.setItem("access_token", data.access);
+                    localStorage.setItem("refresh_token", data.refresh);
+                    window.location.href = "/dashboard/";
+                } else if (r.status === 429) {
+                    showInlineError("loginError", "✗ Too many attempts — please wait a minute and try again.");
                 } else {
                     const err = await r.json().catch(() => ({}));
-                    showInlineError('loginError', '✗ Login failed — ' + formatDrfErrors(err));
+                    showInlineError("loginError", "✗ Login failed — " + formatDrfErrors(err));
                 }
             } catch (err) {
-                showInlineError('loginError', '✗ Network error: ' + err.message);
+                showInlineError("loginError", "✗ Network error: " + err.message);
             }
         });
 
-        // Helper: log in immediately after a successful registration so the user
-        // lands on the dashboard without retyping their password.
         async function autoLogin(email, password) {
-            const r = await fetch('/api/v1/auth/token/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const r = await fetch("/api/v1/auth/token/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             });
             if (!r.ok) return false;
             const data = await r.json();
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            localStorage.setItem("access_token", data.access);
+            localStorage.setItem("refresh_token", data.refresh);
             return true;
         }
 
-        // ── REGISTER ──
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            document.getElementById('registerError').style.display = 'none';
+            document.getElementById("registerError").style.display = "none";
 
             const fd = new FormData(e.target);
-            const password  = fd.get('password');
-            const password2 = fd.get('password2');
+            const password  = fd.get("password");
+            const password2 = fd.get("password2");
+            const consent   = document.getElementById("regConsent").checked;
 
+            if (!consent) {
+                showInlineError("registerError", "✗ You must accept the privacy notice to register.");
+                return;
+            }
             if (password !== password2) {
-                showInlineError('registerError', '✗ Passwords do not match.');
+                showInlineError("registerError", "✗ Passwords do not match.");
                 return;
             }
-            if (password.length < 8) {
-                showInlineError('registerError', '✗ Password must be at least 8 characters.');
+            if (password.length < 10) {
+                showInlineError("registerError", "✗ Password must be at least 10 characters.");
                 return;
             }
 
-            // RegisterSerializer requires: email, username, password, password2.
-            // first_name, last_name, department are optional. Only send keys with values.
             const payload = {
-                username:  fd.get('username'),
-                email:     fd.get('email'),
-                password:  password,
-                password2: password2,
+                username:     fd.get("username"),
+                email:        fd.get("email"),
+                password:     password,
+                password2:    password2,
+                gdpr_consent: true,
             };
-            for (const k of ['first_name', 'last_name', 'department']) {
-                const v = (fd.get(k) || '').trim();
+            for (const k of ["first_name", "last_name", "department"]) {
+                const v = (fd.get(k) || "").trim();
                 if (v) payload[k] = v;
             }
 
             try {
-                const r = await fetch('/api/v1/auth/register/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const r = await fetch("/api/v1/auth/register/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
-
                 if (r.ok) {
-                    // Try auto-login so the new user lands on the dashboard immediately.
                     const ok = await autoLogin(payload.email, password);
                     if (ok) {
-                        window.location.href = '/dashboard/';
+                        window.location.href = "/dashboard/";
                     } else {
-                        // Auto-login failed for some reason — fall back to the login tab.
-                        alert('✓ Account created! Please log in.');
-                        showTab.call({ target: document.querySelector('.tab') }, 'login');
-                        document.getElementById('loginEmail').value = payload.email;
+                        alert("✓ Account created! Please log in.");
+                        showTab.call({ target: document.querySelector(".tab") }, "login");
+                        document.getElementById("loginEmail").value = payload.email;
                     }
+                } else if (r.status === 429) {
+                    showInlineError("registerError", "✗ Too many registrations — please wait a minute.");
                 } else {
                     const err = await r.json().catch(() => ({}));
-                    showInlineError('registerError', '✗ ' + formatDrfErrors(err));
+                    showInlineError("registerError", "✗ " + formatDrfErrors(err));
                 }
             } catch (err) {
-                showInlineError('registerError', '✗ Network error: ' + err.message);
+                showInlineError("registerError", "✗ Network error: " + err.message);
             }
         });
     </script>

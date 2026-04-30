@@ -67,7 +67,6 @@ Ok "Migrations applied."
 # ---- 5a. superuser --------------------------------------------------
 Step "5/6" "Bootstrapping admin user and seed data..."
 
-$hasSuperuser = $false
 $probe = @"
 import django, os, sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
@@ -78,7 +77,6 @@ sys.exit(0 if get_user_model().objects.filter(is_superuser=True).exists() else 1
 & uv run python -c $probe 2>$null
 if ($LASTEXITCODE -eq 0) {
     Ok "Superuser already exists - skipping."
-    $hasSuperuser = $true
 } else {
     Warn "No superuser found. Launching createsuperuser (answer the prompts)..."
     Write-Host ""
@@ -87,7 +85,6 @@ if ($LASTEXITCODE -eq 0) {
         Warn "createsuperuser was cancelled or failed - continuing anyway."
     } else {
         Ok "Superuser created."
-        $hasSuperuser = $true
     }
 }
 

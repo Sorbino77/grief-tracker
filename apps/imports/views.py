@@ -1,3 +1,4 @@
+import logging
 import tempfile
 from pathlib import Path
 
@@ -8,6 +9,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .services import import_excel_file
+
+logger = logging.getLogger(__name__)
+audit = logging.getLogger("audit")
+
+# 10 MB upload cap. DATA_UPLOAD_MAX_MEMORY_SIZE in settings/base.py also caps
+# this at the request-body level, but we double-check here so a clear error
+# message comes back rather than Django\'s generic 413.
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+ALLOWED_SUFFIXES = (".xlsx", ".xlsm", ".xls")
 
 
 class ExcelUploadView(APIView):
@@ -25,19 +35,36 @@ class ExcelUploadView(APIView):
         if not uploaded:
             return Response({"detail": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-        suffix = Path(uploaded.name).suffix.lower()
-        if suffix not in (".xlsx", ".xlsm", ".xls"):
+        # ── Size guard ──
+        if uploaded.size and uploaded.size > MAX_UPLOAD_BYTES:
             return Response(
-                {"detail": "Unsupported file type. Use .xlsx or .xlsm."},
+                {"detail": f"File too large. Max {MAX_UPLOAD_BYTES // 1024 // 1024} MB."},
+                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+
+        # ── Suffix guard ──
+        # Use Path(...).name first so we never trust a path-traversal-laden
+        # uploaded.name like "../../etc/passwd.xlsx".
+        original_name = Path(uploaded.name).name
+        suffix = Path(original_name).suffix.lower()
+        if suffix not in ALLOWED_SUFFIXES:
+            return Response(
+                {"detail": f"Unsupported file type. Use one of: {', '.join(ALLOWED_SUFFIXES)}."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # ── Stream to a temp file with the safe suffix only (not the user-controlled
+        #    name) so nothing on disk reflects untrusted input.
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             for chunk in uploaded.chunks():
                 tmp.write(chunk)
             tmp_path = Path(tmp.name)
 
         try:
+            audit.info(
+                "excel_upload user=%s original_name=%s size=%s",
+                getattr(request.user, "pk", None), original_name, uploaded.size,
+            )
             result = import_excel_file(tmp_path)
         finally:
             tmp_path.unlink(missing_ok=True)

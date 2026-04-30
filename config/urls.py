@@ -4,18 +4,23 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from config.views import DashboardView, HomeView
+from config.views import DashboardView, HomeView, PrivacyView
 
 urlpatterns = [
-    # Home page with login/register
+    # Public pages
     path("", HomeView.as_view(), name="home"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path("privacy/", PrivacyView.as_view(), name="privacy"),
+
+    # Admin
     path("admin/", admin.site.urls),
+
     # API v1
     path("api/v1/auth/", include("apps.accounts.urls")),
     path("api/v1/grief/", include("apps.grief.urls")),
     path("api/v1/analytics/", include("apps.analytics.urls")),
     path("api/v1/imports/", include("apps.imports.urls")),
+
     # API Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
